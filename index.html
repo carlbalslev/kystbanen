@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tog mod Helsingør</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+            background: #0d0d0f;
+            color: #e8e8ea;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .container { width: 100%; max-width: 420px; }
+
+        .header { margin-bottom: 28px; }
+
+        .header-route {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #5a5a6a;
+            margin-bottom: 6px;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f0f0f2;
+        }
+
+        .trains { display: flex; flex-direction: column; gap: 12px; }
+
+        .train-card {
+            background: #18181d;
+            border: 1px solid #26262e;
+            border-radius: 14px;
+            padding: 20px 22px;
+        }
+
+        .train-card.first { border-color: #3a3a46; }
+        .train-card.cancelled { opacity: 0.5; }
+
+        .train-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #4a4a5a;
+            margin-bottom: 10px;
+        }
+
+        .train-top {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .train-time {
+            font-size: 3.4rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: #f0f0f2;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .train-time.delayed { color: #ff6b6b; }
+
+        .train-platform {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+
+        .platform-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #4a4a5a;
+            margin-bottom: 3px;
+        }
+
+        .platform-number {
+            background: #f0f0f2;
+            color: #0d0d0f;
+            font-size: 1.4rem;
+            font-weight: 800;
+            padding: 4px 14px;
+            border-radius: 8px;
+            min-width: 52px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .platform-number.rt-changed { background: #ffd166; }
+
+        .train-via {
+            font-size: 0.7rem;
+            color: #3a3a4a;
+            margin-top: 8px;
+        }
+
+        .train-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .train-line { font-size: 0.8rem; color: #5a5a6a; }
+
+        .status-delayed { font-size: 0.75rem; color: #ff6b6b; }
+        .status-cancelled { font-size: 0.75rem; color: #ff4444; font-weight: 600; }
+        .scheduled-time { font-size: 0.75rem; color: #5a5a6a; text-decoration: line-through; margin-left: 4px; }
+
+        .refresh-bar {
+            margin-top: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .last-updated {
+            font-size: 0.7rem;
+            color: #3a3a4a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #3a3a50;
+            flex-shrink: 0;
+        }
+
+        .dot.live { animation: pulse 2.5s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        .refresh-btn {
+            background: none;
+            border: 1px solid #2a2a34;
+            color: #5a5a6a;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .loading-card {
+            background: #18181d;
+            border: 1px solid #26262e;
+            border-radius: 14px;
+            height: 118px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3a3a4a;
+            font-size: 0.85rem;
+        }
+
+        .error-msg {
+            background: #1d1315;
+            border: 1px solid #3d2325;
+            border-radius: 14px;
+            padding: 18px 20px;
+            color: #ff8888;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* API key setup screen */
+        .setup-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .setup-card {
+            background: #18181d;
+            border: 1px solid #26262e;
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .setup-card h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #c0c0c8;
+            margin-bottom: 10px;
+        }
+
+        .setup-card p {
+            font-size: 0.82rem;
+            color: #5a5a6a;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .setup-card a { color: #7a7a9a; }
+
+        .api-input {
+            width: 100%;
+            background: #0d0d0f;
+            border: 1px solid #2e2e38;
+            border-radius: 8px;
+            color: #d0d0d8;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        .api-input:focus { border-color: #4a4a60; }
+        .api-input::placeholder { color: #3a3a4a; }
+
+        .save-btn {
+            width: 100%;
+            background: #26262e;
+            border: 1px solid #3a3a46;
+            border-radius: 8px;
+            color: #c0c0c8;
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .save-btn:active { background: #2e2e38; }
+    </style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+    const STATION_ID = '8600626';  // Kobenhavn H
+    const DIRECTION  = 'Helsingør';
+    const REFRESH_MS = 30_000;
+    const KEY_STORE  = 'rp_api_key';
+
+    const app = document.getElementById('app');
+
+    function minutesDiff(from, to) {
+        const [fh, fm] = from.split(':').map(Number);
+        const [th, tm] = to.split(':').map(Number);
+        return Math.max(0, (th * 60 + tm) - (fh * 60 + fm));
+    }
+
+    function renderSetup() {
+        app.innerHTML = `
+            <div class="header">
+                <div class="header-route">Kystbanen · Kobenhavn H</div>
+                <div class="header-title">Næste tog mod Helsingør</div>
+            </div>
+            <div class="setup-screen">
+                <div class="setup-card">
+                    <h2>Første gang</h2>
+                    <p>
+                        Appen bruger Rejseplanens API. Du skal bruge en gratis adgangsnøgle
+                        fra <a href="https://labs.rejseplanen.dk" target="_blank">labs.rejseplanen.dk</a>
+                        — registrer dig og kopiér din <em>accessId</em>.
+                        Nøglen gemmes i din browser og bedes kun én gang.
+                    </p>
+                    <input class="api-input" id="keyInput" type="text"
+                           placeholder="Indsæt accessId her" autocomplete="off" />
+                    <button class="save-btn" onclick="saveKey()">Gem og åbn tavlen</button>
+                </div>
+            </div>`;
+    }
+
+    function saveKey() {
+        const k = document.getElementById('keyInput').value.trim();
+        if (!k) return;
+        localStorage.setItem(KEY_STORE, k);
+        renderBoard();
+        fetchDepartures();
+    }
+
+    function renderBoard() {
+        app.innerHTML = `
+            <div class="header">
+                <div class="header-route">Kystbanen · Kobenhavn H</div>
+                <div class="header-title">Næste tog mod Helsingør</div>
+            </div>
+            <div id="trains" class="trains">
+                <div class="loading-card">Henter afgange&hellip;</div>
+                <div class="loading-card"></div>
+            </div>
+            <div class="refresh-bar">
+                <span class="last-updated">
+                    <span class="dot" id="dot"></span>
+                    <span id="updated-text">Opdaterer&hellip;</span>
+                </span>
+                <button class="refresh-btn" onclick="fetchDepartures()">Opdater nu</button>
+            </div>`;
+    }
+
+    function renderCard(dep, index) {
+        const scheduled  = dep.time;
+        const rt         = dep.rtTime;
+        const cancelled  = String(dep.cancelled) === 'true';
+        const delayed    = !cancelled && rt && rt !== scheduled;
+        const displayTime = rt || scheduled;
+
+        const track        = dep.rtTrack || dep.track || null;
+        const trackChanged = dep.rtTrack && dep.track && dep.rtTrack !== dep.track;
+
+        let statusHtml = '';
+        if (cancelled) {
+            statusHtml = '<span class="status-cancelled">Aflyst</span>';
+        } else if (delayed) {
+            const diff = minutesDiff(scheduled, rt);
+            statusHtml = `<span class="status-delayed">+${diff} min</span><span class="scheduled-time">${scheduled}</span>`;
+        }
+
+        const platformHtml = track
+            ? `<div class="train-platform">
+                 <div class="platform-label">Spor</div>
+                 <div class="platform-number${trackChanged ? ' rt-changed' : ''}">${track}</div>
+               </div>`
+            : '';
+
+        return `
+            <div class="train-card${index === 0 ? ' first' : ''}${cancelled ? ' cancelled' : ''}">
+                <div class="train-label">${index === 0 ? 'Næste afgang' : 'Derefter'}</div>
+                <div class="train-top">
+                    <div class="train-time${delayed ? ' delayed' : ''}">${displayTime}</div>
+                    ${platformHtml}
+                </div>
+                <div class="train-via">mod Helsingør via Humlebæk</div>
+                <div class="train-bottom">
+                    <span class="train-line">${dep.name || ''}</span>
+                    <span>${statusHtml}</span>
+                </div>
+            </div>`;
+    }
+
+    async function fetchDepartures() {
+        const trainsEl  = document.getElementById('trains');
+        const updatedEl = document.getElementById('updated-text');
+        const dotEl     = document.getElementById('dot');
+        if (!trainsEl) return;
+
+        dotEl && dotEl.classList.remove('live');
+
+        const apiKey = localStorage.getItem(KEY_STORE) || '';
+
+        const url = `https://www.rejseplanen.dk/api/departureBoard` +
+            `?accessId=${encodeURIComponent(apiKey)}` +
+            `&id=${STATION_ID}` +
+            `&maxJourneys=40` +
+            `&useTrain=1&useBus=0&useMetro=0` +
+            `&format=json` +
+            `&duration=120`;
+
+        try {
+            const resp = await fetch(url);
+            if (resp.status === 401 || resp.status === 403) {
+                localStorage.removeItem(KEY_STORE);
+                renderSetup();
+                document.getElementById('keyInput').placeholder = 'Ugyldig nøgle — prøv igen';
+                return;
+            }
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+            const data = await resp.json();
+            const raw = data?.DepartureBoard?.Departure;
+            if (!raw) throw new Error('Uventet svar fra API');
+
+            const deps = (Array.isArray(raw) ? raw : [raw])
+                .filter(d => d.direction && d.direction.includes(DIRECTION))
+                .slice(0, 2);
+
+            trainsEl.innerHTML = deps.length
+                ? deps.map((d, i) => renderCard(d, i)).join('')
+                : '<div class="error-msg">Ingen afgange mod Helsingør de næste 2 timer.</div>';
+
+            const now = new Date().toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if (updatedEl) updatedEl.textContent = `Sidst opdateret ${now}`;
+            if (dotEl) dotEl.classList.add('live');
+
+        } catch (err) {
+            if (trainsEl) trainsEl.innerHTML = `<div class="error-msg">${err.message}</div>`;
+        }
+    }
+
+    // Boot
+    if (localStorage.getItem(KEY_STORE)) {
+        renderBoard();
+        fetchDepartures();
+        setInterval(fetchDepartures, REFRESH_MS);
+    } else {
+        renderSetup();
+    }
+</script>
+</body>
+</html>
