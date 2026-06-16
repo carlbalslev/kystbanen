@@ -267,8 +267,8 @@
     const SETTINGS_KEY = 'kystbanen_settings';
 
     const KNOWN_STATIONS = {
-        'København H':  { id: '8600626', lat: 55.6728, lon: 12.5655 },
-        'Humlebæk':     { id: '8600858', lat: 55.9667, lon: 12.5333 },
+        'København H':  { id: '8600626', lat: 55.6728, lon: 12.5655, direction: 'Helsingør' },
+        'Humlebæk':     { id: '8600858', lat: 55.9667, lon: 12.5333, direction: 'København H' },
     };
 
     function loadSettings() {
@@ -466,11 +466,8 @@
             const raw = data?.DepartureBoard?.Departure;
             if (!raw) throw new Error('Uventet svar fra API');
 
-            const st   = getStations();
-            const from = activeStation || st.a;
-            const to   = from.name === st.a.name ? st.b : st.a;
             const deps = (Array.isArray(raw) ? raw : [raw])
-                .filter(d => d.direction && d.direction.includes(to.name))
+                .filter(d => d.direction && d.direction.includes(activeStation.direction))
                 .slice(0, 2);
 
             trainsEl.innerHTML = deps.length
