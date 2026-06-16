@@ -380,23 +380,37 @@
             <div>
                 <div class="platform-label" style="margin-bottom:6px">${label}</div>
                 <div style="position:relative">
-                    <input class="api-input" id="${id}-input" type="text"
-                        value="${current}" autocomplete="off"
-                        oninput="filterStations('${id}')"
-                        onfocus="filterStations('${id}')"
-                        onblur="setTimeout(()=>hideList('${id}'),150)"
-                        placeholder="Søg station…" />
+                    <div id="${id}-display" style="display:flex;align-items:center;gap:10px">
+                        <span id="${id}-name" style="font-size:1rem;color:#e2f0ff;flex:1">${current}</span>
+                        <button class="refresh-btn" onclick="activatePicker('${id}')" style="flex-shrink:0">Skift</button>
+                    </div>
+                    <div id="${id}-search" style="display:none;position:relative">
+                        <input class="api-input" id="${id}-input" type="text"
+                            autocomplete="off"
+                            oninput="filterStations('${id}')"
+                            onblur="setTimeout(()=>hideList('${id}'),150)"
+                            placeholder="Søg station…" />
+                        <div id="${id}-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:#111827;border:1px solid #1e3a6e;border-radius:8px;margin-top:4px;z-index:10;max-height:200px;overflow-y:auto"></div>
+                    </div>
                     <input type="hidden" id="${id}-value" value="${current}" />
-                    <div id="${id}-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:#111827;border:1px solid #1e3a6e;border-radius:8px;margin-top:4px;z-index:10;max-height:200px;overflow-y:auto"></div>
                 </div>
             </div>`;
+    }
+
+    function activatePicker(id) {
+        document.getElementById(`${id}-display`).style.display = 'none';
+        document.getElementById(`${id}-search`).style.display = 'block';
+        const input = document.getElementById(`${id}-input`);
+        input.value = '';
+        input.focus();
+        filterStations(id);
     }
 
     function filterStations(id) {
         const input = document.getElementById(`${id}-input`);
         const list  = document.getElementById(`${id}-list`);
         const q     = input.value.toLowerCase();
-        const matches = Object.keys(KNOWN_STATIONS).filter(n => n.toLowerCase().includes(q));
+        const matches = Object.keys(KNOWN_STATIONS).filter(n => !q || n.toLowerCase().includes(q));
         if (!matches.length) { list.style.display = 'none'; return; }
         list.innerHTML = matches.map(n => `
             <div onclick="selectStation('${id}','${n}')"
@@ -408,8 +422,10 @@
     }
 
     function selectStation(id, name) {
-        document.getElementById(`${id}-input`).value = name;
         document.getElementById(`${id}-value`).value = name;
+        document.getElementById(`${id}-name`).textContent = name;
+        document.getElementById(`${id}-search`).style.display = 'none';
+        document.getElementById(`${id}-display`).style.display = 'flex';
         hideList(id);
     }
 
