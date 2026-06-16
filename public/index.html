@@ -267,8 +267,19 @@
     const SETTINGS_KEY = 'kystbanen_settings';
 
     const KNOWN_STATIONS = {
-        'København H':  { id: '8600626', lat: 55.6728, lon: 12.5655, direction: 'Helsingør' },
-        'Humlebæk':     { id: '8600858', lat: 55.9667, lon: 12.5333, direction: 'København H' },
+        'Helsingør':      { id: '8600683', lat: 56.0362, lon: 12.6136, direction: 'København H' },
+        'Snekkersten':    { id: '8600680', lat: 56.0153, lon: 12.5997, direction: 'København H' },
+        'Espergærde':     { id: '8600677', lat: 56.0028, lon: 12.5800, direction: 'København H' },
+        'Humlebæk':       { id: '8600858', lat: 55.9667, lon: 12.5333, direction: 'København H' },
+        'Nivå':           { id: '8600671', lat: 55.9383, lon: 12.5117, direction: 'København H' },
+        'Kokkedal':       { id: '8600668', lat: 55.9133, lon: 12.4983, direction: 'København H' },
+        'Rungsted Kyst':  { id: '8600665', lat: 55.8883, lon: 12.5017, direction: 'København H' },
+        'Vedbæk':         { id: '8600662', lat: 55.8550, lon: 12.5533, direction: 'København H' },
+        'Skodsborg':      { id: '8600659', lat: 55.8317, lon: 12.5717, direction: 'København H' },
+        'Klampenborg':    { id: '8600748', lat: 55.7733, lon: 12.5933, direction: 'København H' },
+        'Hellerup':       { id: '8600672', lat: 55.7283, lon: 12.5767, direction: 'København H' },
+        'Østerport':      { id: '8600612', lat: 55.7100, lon: 12.5783, direction: 'København H' },
+        'København H':    { id: '8600626', lat: 55.6728, lon: 12.5655, direction: 'Helsingør' },
     };
 
     function loadSettings() {
@@ -350,41 +361,67 @@
 
     function renderSettings() {
         const s = loadSettings();
-        const stationOptions = Object.keys(KNOWN_STATIONS).map(name =>
-            `<option value="${name}">${name}</option>`).join('');
-
         app.innerHTML = `
             <div class="header">
                 <div class="header-route">Kystbanen</div>
                 <div class="header-title">Indstillinger</div>
             </div>
-            <div class="setup-card" style="background:#111827;border:1px solid #1e2d45;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px">
-                <div>
-                    <div class="platform-label" style="margin-bottom:6px">Station A</div>
-                    <select id="stationA" class="api-input">
-                        ${Object.keys(KNOWN_STATIONS).map(n =>
-                            `<option value="${n}"${(s.stationA||'København H')===n?' selected':''}>${n}</option>`
-                        ).join('')}
-                    </select>
-                </div>
-                <div>
-                    <div class="platform-label" style="margin-bottom:6px">Station B</div>
-                    <select id="stationB" class="api-input">
-                        ${Object.keys(KNOWN_STATIONS).map(n =>
-                            `<option value="${n}"${(s.stationB||'Humlebæk')===n?' selected':''}>${n}</option>`
-                        ).join('')}
-                    </select>
-                </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                ${stationPicker('stationA', 'Station A', s.stationA || 'København H')}
+                ${stationPicker('stationB', 'Station B', s.stationB || 'Humlebæk')}
                 <button class="save-btn" onclick="saveSettingsAndReturn()">Gem</button>
                 <button class="refresh-btn" style="width:100%;padding:10px" onclick="boot()">Annuller</button>
             </div>`;
     }
 
+    function stationPicker(id, label, current) {
+        return `
+            <div>
+                <div class="platform-label" style="margin-bottom:6px">${label}</div>
+                <div style="position:relative">
+                    <input class="api-input" id="${id}-input" type="text"
+                        value="${current}" autocomplete="off"
+                        oninput="filterStations('${id}')"
+                        onfocus="filterStations('${id}')"
+                        onblur="setTimeout(()=>hideList('${id}'),150)"
+                        placeholder="Søg station…" />
+                    <input type="hidden" id="${id}-value" value="${current}" />
+                    <div id="${id}-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:#111827;border:1px solid #1e3a6e;border-radius:8px;margin-top:4px;z-index:10;max-height:200px;overflow-y:auto"></div>
+                </div>
+            </div>`;
+    }
+
+    function filterStations(id) {
+        const input = document.getElementById(`${id}-input`);
+        const list  = document.getElementById(`${id}-list`);
+        const q     = input.value.toLowerCase();
+        const matches = Object.keys(KNOWN_STATIONS).filter(n => n.toLowerCase().includes(q));
+        if (!matches.length) { list.style.display = 'none'; return; }
+        list.innerHTML = matches.map(n => `
+            <div onclick="selectStation('${id}','${n}')"
+                 style="padding:10px 14px;cursor:pointer;font-size:0.9rem;color:#e2f0ff;border-bottom:1px solid #1e2d45"
+                 onmouseover="this.style.background='#1e3a6e'" onmouseout="this.style.background=''">
+                ${n}
+            </div>`).join('');
+        list.style.display = 'block';
+    }
+
+    function selectStation(id, name) {
+        document.getElementById(`${id}-input`).value = name;
+        document.getElementById(`${id}-value`).value = name;
+        hideList(id);
+    }
+
+    function hideList(id) {
+        const list = document.getElementById(`${id}-list`);
+        if (list) list.style.display = 'none';
+    }
+
     function saveSettingsAndReturn() {
-        saveSettings({
-            stationA: document.getElementById('stationA').value,
-            stationB: document.getElementById('stationB').value,
-        });
+        const a = document.getElementById('stationA-value').value;
+        const b = document.getElementById('stationB-value').value;
+        if (!KNOWN_STATIONS[a] || !KNOWN_STATIONS[b]) return;
+        saveSettings({ stationA: a, stationB: b });
         activeStation = null;
         boot();
     }
