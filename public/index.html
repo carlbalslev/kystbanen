@@ -67,7 +67,7 @@
 
         .train-primary {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             gap: 12px;
         }
@@ -319,14 +319,23 @@
             secondaryHtml = `<span class="train-deptime">${scheduled}</span>`;
         }
 
+        const platformHtmlInner = track
+            ? `<div class="platform-number${trackChanged ? ' rt-changed' : ''}">${track}</div>`
+            : '';
+
         return `
             <div class="train-card${index === 0 ? ' first' : ''}${cancelled ? ' cancelled' : ''}">
-                <div class="train-label">${index === 0 ? 'Næste afgang' : 'Derefter'}</div>
                 <div class="train-primary">
-                    <div class="train-minutes${minsLeft <= 5 ? ' urgent' : ''}">
-                        ${minsLeft}<span class="train-minutes-unit">min</span>
+                    <div>
+                        <div class="train-label">${index === 0 ? 'Næste afgang' : 'Derefter'}</div>
+                        <div class="train-minutes${minsLeft <= 5 ? ' urgent' : ''}">
+                            ${minsLeft}<span class="train-minutes-unit">min</span>
+                        </div>
                     </div>
-                    ${platformHtml}
+                    ${track ? `<div class="train-platform">
+                        <div class="platform-label">Spor</div>
+                        ${platformHtmlInner}
+                    </div>` : ''}
                 </div>
                 <div class="train-secondary">
                     ${secondaryHtml}
