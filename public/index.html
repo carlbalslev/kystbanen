@@ -158,6 +158,26 @@
             justify-content: space-between;
         }
 
+        .info-bar {
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: #3a3a4a;
+        }
+
+        .info-value {
+            font-variant-numeric: tabular-nums;
+            color: #5a5a6a;
+        }
+
         .last-updated {
             font-size: 0.7rem;
             color: #3a3a4a;
@@ -223,6 +243,10 @@
 
     const app = document.getElementById('app');
 
+    function fmtTime(d) {
+        return d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
     function timeToMinutes(t) {
         const [h, m] = t.split(':').map(Number);
         return h * 60 + m;
@@ -248,12 +272,19 @@
                 <div class="loading-card">Henter afgange&hellip;</div>
                 <div class="loading-card"></div>
             </div>
-            <div class="refresh-bar">
-                <span class="last-updated">
-                    <span class="dot" id="dot"></span>
-                    <span id="updated-text">Opdaterer&hellip;</span>
-                </span>
-                <button class="refresh-btn" onclick="fetchDepartures()">Opdater nu</button>
+            <div class="info-bar">
+                <div class="info-row">
+                    <span>Nuværende tidspunkt</span>
+                    <span class="info-value" id="current-time">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Data hentet</span>
+                    <span class="info-value" id="updated-text">—</span>
+                </div>
+                <div class="info-row" style="margin-top:4px">
+                    <span class="last-updated"><span class="dot" id="dot"></span></span>
+                    <button class="refresh-btn" onclick="fetchDepartures()">Opdater nu</button>
+                </div>
             </div>`;
     }
 
@@ -330,8 +361,7 @@
                 ? deps.map((d, i) => renderCard(d, i)).join('')
                 : '<div class="error-msg">Ingen afgange mod Helsingør de næste 2 timer.</div>';
 
-            const now = new Date().toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            if (updatedEl) updatedEl.textContent = `Sidst opdateret ${now}`;
+            if (updatedEl) updatedEl.textContent = fmtTime(new Date());
             if (dotEl) dotEl.classList.add('live');
 
         } catch (err) {
@@ -339,9 +369,16 @@
         }
     }
 
+    function tickClock() {
+        const el = document.getElementById('current-time');
+        if (el) el.textContent = fmtTime(new Date());
+    }
+
     renderBoard();
     fetchDepartures();
     setInterval(fetchDepartures, REFRESH_MS);
+    setInterval(tickClock, 1000);
+    tickClock();
 </script>
 </body>
 </html>
