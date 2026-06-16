@@ -44,6 +44,7 @@ export default async function handler(req, res) {
     }
 
     if (apiKey === 'TBD') {
+        res.setHeader('Cache-Control', 'no-store');
         return res.status(200).json(mockResponse());
     }
 
