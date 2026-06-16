@@ -65,7 +65,14 @@
             gap: 12px;
         }
 
-        .train-time {
+        .train-primary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .train-minutes {
             font-size: 3.4rem;
             font-weight: 800;
             letter-spacing: -0.03em;
@@ -74,7 +81,14 @@
             font-variant-numeric: tabular-nums;
         }
 
-        .train-time.delayed { color: #ff6b6b; }
+        .train-minutes-unit {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #5a5a6a;
+            margin-left: 4px;
+        }
+
+        .train-minutes.urgent { color: #ff6b6b; }
 
         .train-platform {
             display: flex;
@@ -106,24 +120,36 @@
 
         .platform-number.rt-changed { background: #ffd166; }
 
-        .train-via {
-            font-size: 0.7rem;
-            color: #3a3a4a;
-            margin-top: 8px;
-        }
-
-        .train-bottom {
+        .train-secondary {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 8px;
             margin-top: 10px;
         }
 
-        .train-line { font-size: 0.8rem; color: #5a5a6a; }
+        .train-deptime {
+            font-size: 0.85rem;
+            color: #8a8a9a;
+            font-variant-numeric: tabular-nums;
+        }
 
-        .status-delayed { font-size: 0.75rem; color: #ff6b6b; }
-        .status-cancelled { font-size: 0.75rem; color: #ff4444; font-weight: 600; }
-        .scheduled-time { font-size: 0.75rem; color: #5a5a6a; text-decoration: line-through; margin-left: 4px; }
+        .train-deptime.delayed { color: #ff6b6b; }
+
+        .train-scheduled {
+            font-size: 0.8rem;
+            color: #4a4a5a;
+            text-decoration: line-through;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .train-delay {
+            font-size: 0.8rem;
+            color: #ff6b6b;
+        }
+
+        .status-cancelled { font-size: 0.85rem; color: #ff4444; font-weight: 600; }
+
+        .train-line { font-size: 0.75rem; color: #3a3a4a; margin-left: auto; }
 
         .refresh-bar {
             margin-top: 18px;
@@ -197,10 +223,19 @@
 
     const app = document.getElementById('app');
 
+    function timeToMinutes(t) {
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    function minutesUntil(depTime) {
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        return Math.max(0, timeToMinutes(depTime) - nowMins);
+    }
+
     function minutesDiff(from, to) {
-        const [fh, fm] = from.split(':').map(Number);
-        const [th, tm] = to.split(':').map(Number);
-        return Math.max(0, (th * 60 + tm) - (fh * 60 + fm));
+        return Math.max(0, timeToMinutes(to) - timeToMinutes(from));
     }
 
     function renderBoard() {
@@ -223,22 +258,15 @@
     }
 
     function renderCard(dep, index) {
-        const scheduled  = dep.time;
-        const rt         = dep.rtTime;
-        const cancelled  = String(dep.cancelled) === 'true';
-        const delayed    = !cancelled && rt && rt !== scheduled;
-        const displayTime = rt || scheduled;
+        const scheduled    = dep.time;
+        const rt           = dep.rtTime;
+        const cancelled    = String(dep.cancelled) === 'true';
+        const delayed      = !cancelled && rt && rt !== scheduled;
+        const displayTime  = rt || scheduled;
+        const minsLeft     = minutesUntil(displayTime);
 
         const track        = dep.rtTrack || dep.track || null;
         const trackChanged = dep.rtTrack && dep.track && dep.rtTrack !== dep.track;
-
-        let statusHtml = '';
-        if (cancelled) {
-            statusHtml = '<span class="status-cancelled">Aflyst</span>';
-        } else if (delayed) {
-            const diff = minutesDiff(scheduled, rt);
-            statusHtml = `<span class="status-delayed">+${diff} min</span><span class="scheduled-time">${scheduled}</span>`;
-        }
 
         const platformHtml = track
             ? `<div class="train-platform">
@@ -247,17 +275,31 @@
                </div>`
             : '';
 
+        let secondaryHtml = '';
+        if (cancelled) {
+            secondaryHtml = '<span class="status-cancelled">Aflyst</span>';
+        } else if (delayed) {
+            const diff = minutesDiff(scheduled, rt);
+            secondaryHtml = `
+                <span class="train-deptime delayed">${rt}</span>
+                <span class="train-scheduled">${scheduled}</span>
+                <span class="train-delay">+${diff} min</span>`;
+        } else {
+            secondaryHtml = `<span class="train-deptime">${scheduled}</span>`;
+        }
+
         return `
             <div class="train-card${index === 0 ? ' first' : ''}${cancelled ? ' cancelled' : ''}">
                 <div class="train-label">${index === 0 ? 'Næste afgang' : 'Derefter'}</div>
-                <div class="train-top">
-                    <div class="train-time${delayed ? ' delayed' : ''}">${displayTime}</div>
+                <div class="train-primary">
+                    <div class="train-minutes${minsLeft <= 5 ? ' urgent' : ''}">
+                        ${minsLeft}<span class="train-minutes-unit">min</span>
+                    </div>
                     ${platformHtml}
                 </div>
-                <div class="train-via">mod Helsingør via Humlebæk</div>
-                <div class="train-bottom">
+                <div class="train-secondary">
+                    ${secondaryHtml}
                     <span class="train-line">${dep.name || ''}</span>
-                    <span>${statusHtml}</span>
                 </div>
             </div>`;
     }
