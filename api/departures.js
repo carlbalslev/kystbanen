@@ -1,6 +1,11 @@
 function mockResponse() {
     const now = new Date();
-    const fmt = d => d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Copenhagen' });
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = d => {
+        const s = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Copenhagen' });
+        const [h, m] = s.split(':');
+        return `${pad(h)}:${pad(m)}`;
+    };
 
     const t1 = new Date(now.getTime() + 8 * 60000);
     const t2 = new Date(now.getTime() + 23 * 60000);
