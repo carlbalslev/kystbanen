@@ -223,6 +223,31 @@
             font-size: 0.85rem;
         }
 
+        .api-input {
+            width: 100%;
+            background: #0b1120;
+            border: 1px solid #1e3a6e;
+            border-radius: 8px;
+            color: #e2f0ff;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .api-input:focus { border-color: #2a5298; }
+
+        .save-btn {
+            width: 100%;
+            background: #1e3a6e;
+            border: 1px solid #2a5298;
+            border-radius: 8px;
+            color: #e2f0ff;
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         .error-msg {
             background: #1a0f0f;
             border: 1px solid #5a1a1a;
@@ -238,12 +263,39 @@
 <div class="container" id="app"></div>
 
 <script>
-    const STATION_ID = '8600626';  // Kobenhavn H
-    const DIRECTION  = 'Helsingør';
     const REFRESH_MS = 30_000;
+    const SETTINGS_KEY = 'kystbanen_settings';
+
+    const KNOWN_STATIONS = {
+        'København H':  { id: '8600626', lat: 55.6728, lon: 12.5655 },
+        'Humlebæk':     { id: '8600858', lat: 55.9667, lon: 12.5333 },
+    };
+
+    function loadSettings() {
+        try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
+    }
+
+    function saveSettings(s) {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+    }
+
+    function getStations() {
+        const s = loadSettings();
+        return {
+            a: { name: s.stationA || 'København H',  ...KNOWN_STATIONS[s.stationA  || 'København H']  },
+            b: { name: s.stationB || 'Humlebæk',     ...KNOWN_STATIONS[s.stationB  || 'Humlebæk']     },
+        };
+    }
+
+    function distKm(lat1, lon1, lat2, lon2) {
+        const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
 
     const app = document.getElementById('app');
     let lastFetched = null;
+    let activeStation = null;
 
     function fmtTime(d) {
         return d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -265,10 +317,16 @@
     }
 
     function renderBoard() {
+        const st = getStations();
+        const from = activeStation || st.a;
+        const to   = from.name === st.a.name ? st.b : st.a;
         app.innerHTML = `
             <div class="header">
-                <div class="header-route">Kystbanen · Kobenhavn H</div>
-                <div class="header-title">Næste tog mod Helsingør</div>
+                <div class="header-route" style="display:flex;justify-content:space-between;align-items:center">
+                    <span>Kystbanen · ${from.name}</span>
+                    <button class="refresh-btn" onclick="renderSettings()" style="font-size:0.75rem">⚙ Indstillinger</button>
+                </div>
+                <div class="header-title">Næste tog mod ${to.name}</div>
             </div>
             <div id="trains" class="trains">
                 <div class="loading-card">Henter afgange&hellip;</div>
@@ -288,6 +346,47 @@
                     <button class="refresh-btn" onclick="fetchDepartures()">Opdater nu</button>
                 </div>
             </div>`;
+    }
+
+    function renderSettings() {
+        const s = loadSettings();
+        const stationOptions = Object.keys(KNOWN_STATIONS).map(name =>
+            `<option value="${name}">${name}</option>`).join('');
+
+        app.innerHTML = `
+            <div class="header">
+                <div class="header-route">Kystbanen</div>
+                <div class="header-title">Indstillinger</div>
+            </div>
+            <div class="setup-card" style="background:#111827;border:1px solid #1e2d45;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px">
+                <div>
+                    <div class="platform-label" style="margin-bottom:6px">Station A</div>
+                    <select id="stationA" class="api-input">
+                        ${Object.keys(KNOWN_STATIONS).map(n =>
+                            `<option value="${n}"${(s.stationA||'København H')===n?' selected':''}>${n}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+                <div>
+                    <div class="platform-label" style="margin-bottom:6px">Station B</div>
+                    <select id="stationB" class="api-input">
+                        ${Object.keys(KNOWN_STATIONS).map(n =>
+                            `<option value="${n}"${(s.stationB||'Humlebæk')===n?' selected':''}>${n}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+                <button class="save-btn" onclick="saveSettingsAndReturn()">Gem</button>
+                <button class="refresh-btn" style="width:100%;padding:10px" onclick="boot()">Annuller</button>
+            </div>`;
+    }
+
+    function saveSettingsAndReturn() {
+        saveSettings({
+            stationA: document.getElementById('stationA').value,
+            stationB: document.getElementById('stationB').value,
+        });
+        activeStation = null;
+        boot();
     }
 
     function renderCard(dep, index) {
@@ -354,7 +453,10 @@
 
         dotEl && dotEl.classList.remove('live');
 
-        const url = `/api/departures?id=${STATION_ID}&maxJourneys=40&duration=120`;
+        const st   = getStations();
+        const from = activeStation || st.a;
+        const to   = from.name === st.a.name ? st.b : st.a;
+        const url  = `/api/departures?id=${from.id}&maxJourneys=40&duration=120`;
 
         try {
             const resp = await fetch(url);
@@ -364,8 +466,11 @@
             const raw = data?.DepartureBoard?.Departure;
             if (!raw) throw new Error('Uventet svar fra API');
 
+            const st   = getStations();
+            const from = activeStation || st.a;
+            const to   = from.name === st.a.name ? st.b : st.a;
             const deps = (Array.isArray(raw) ? raw : [raw])
-                .filter(d => d.direction && d.direction.includes(DIRECTION))
+                .filter(d => d.direction && d.direction.includes(to.name))
                 .slice(0, 2);
 
             trainsEl.innerHTML = deps.length
@@ -389,8 +494,29 @@
         else el.textContent = `${Math.floor(secs / 60)} min ${secs % 60} sek`;
     }
 
-    renderBoard();
-    fetchDepartures();
+    function boot() {
+        const st = getStations();
+        if (!navigator.geolocation) {
+            activeStation = st.a;
+            renderBoard();
+            fetchDepartures();
+        } else {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const { latitude: lat, longitude: lon } = pos.coords;
+                const distA = distKm(lat, lon, st.a.lat, st.a.lon);
+                const distB = distKm(lat, lon, st.b.lat, st.b.lon);
+                activeStation = distA <= distB ? st.a : st.b;
+                renderBoard();
+                fetchDepartures();
+            }, () => {
+                activeStation = st.a;
+                renderBoard();
+                fetchDepartures();
+            });
+        }
+    }
+
+    boot();
     setInterval(fetchDepartures, REFRESH_MS);
     setInterval(tickElapsed, 1000);
 </script>
