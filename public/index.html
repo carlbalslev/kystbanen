@@ -9,8 +9,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
-            background: #0d0d0f;
-            color: #e8e8ea;
+            background: #0b1120;
+            color: #e2e8f0;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -27,26 +27,26 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.12em;
-            color: #5a5a6a;
+            color: #4a6fa5;
             margin-bottom: 6px;
         }
 
         .header-title {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #f0f0f2;
+            color: #f0f4ff;
         }
 
         .trains { display: flex; flex-direction: column; gap: 12px; }
 
         .train-card {
-            background: #18181d;
-            border: 1px solid #26262e;
+            background: #111827;
+            border: 1px solid #1e2d45;
             border-radius: 14px;
             padding: 20px 22px;
         }
 
-        .train-card.first { border-color: #3a3a46; }
+        .train-card.first { border-color: #2a4a7f; box-shadow: 0 0 0 1px #2a4a7f; }
         .train-card.cancelled { opacity: 0.5; }
 
         .train-label {
@@ -54,7 +54,7 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: #4a4a5a;
+            color: #4a6fa5;
             margin-bottom: 10px;
         }
 
@@ -77,14 +77,14 @@
             font-weight: 800;
             letter-spacing: -0.03em;
             line-height: 1;
-            color: #f0f0f2;
+            color: #e2f0ff;
             font-variant-numeric: tabular-nums;
         }
 
         .train-minutes-unit {
             font-size: 1rem;
             font-weight: 500;
-            color: #5a5a6a;
+            color: #4a6fa5;
             margin-left: 4px;
         }
 
@@ -102,13 +102,13 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: #4a4a5a;
+            color: #4a6fa5;
             margin-bottom: 3px;
         }
 
         .platform-number {
-            background: #f0f0f2;
-            color: #0d0d0f;
+            background: #1e3a6e;
+            color: #e2f0ff;
             font-size: 2.2rem;
             font-weight: 800;
             padding: 4px 18px;
@@ -116,9 +116,10 @@
             min-width: 80px;
             text-align: center;
             line-height: 1;
+            border: 1px solid #2a5298;
         }
 
-        .platform-number.rt-changed { background: #ffd166; }
+        .platform-number.rt-changed { background: #7c3a00; color: #fef3c7; border-color: #b45309; }
 
         .train-secondary {
             display: flex;
@@ -129,7 +130,7 @@
 
         .train-deptime {
             font-size: 0.85rem;
-            color: #8a8a9a;
+            color: #6b8cba;
             font-variant-numeric: tabular-nums;
         }
 
@@ -137,7 +138,7 @@
 
         .train-scheduled {
             font-size: 0.8rem;
-            color: #4a4a5a;
+            color: #2d3f5a;
             text-decoration: line-through;
             font-variant-numeric: tabular-nums;
         }
@@ -149,7 +150,7 @@
 
         .status-cancelled { font-size: 0.85rem; color: #ff4444; font-weight: 600; }
 
-        .train-line { font-size: 0.75rem; color: #3a3a4a; margin-left: auto; }
+        .train-line { font-size: 0.75rem; color: #2a3a52; margin-left: auto; }
 
         .refresh-bar {
             margin-top: 18px;
@@ -170,17 +171,17 @@
             align-items: center;
             justify-content: space-between;
             font-size: 0.7rem;
-            color: #3a3a4a;
+            color: #2d4a6e;
         }
 
         .info-value {
             font-variant-numeric: tabular-nums;
-            color: #5a5a6a;
+            color: #4a6fa5;
         }
 
         .last-updated {
             font-size: 0.7rem;
-            color: #3a3a4a;
+            color: #2d4a6e;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -189,11 +190,11 @@
         .dot {
             width: 7px; height: 7px;
             border-radius: 50%;
-            background: #3a3a50;
+            background: #2a5298;
             flex-shrink: 0;
         }
 
-        .dot.live { animation: pulse 2.5s infinite; }
+        .dot.live { animation: pulse 2.5s infinite; background: #4a90d9; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -202,8 +203,8 @@
 
         .refresh-btn {
             background: none;
-            border: 1px solid #2a2a34;
-            color: #5a5a6a;
+            border: 1px solid #1e3a6e;
+            color: #4a6fa5;
             padding: 5px 12px;
             border-radius: 6px;
             font-size: 0.7rem;
@@ -211,20 +212,20 @@
         }
 
         .loading-card {
-            background: #18181d;
-            border: 1px solid #26262e;
+            background: #111827;
+            border: 1px solid #1e2d45;
             border-radius: 14px;
             height: 118px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #3a3a4a;
+            color: #2d4a6e;
             font-size: 0.85rem;
         }
 
         .error-msg {
-            background: #1d1315;
-            border: 1px solid #3d2325;
+            background: #1a0f0f;
+            border: 1px solid #5a1a1a;
             border-radius: 14px;
             padding: 18px 20px;
             color: #ff8888;
