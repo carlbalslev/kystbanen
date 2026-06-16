@@ -243,6 +243,7 @@
     const REFRESH_MS = 30_000;
 
     const app = document.getElementById('app');
+    let lastFetched = null;
 
     function fmtTime(d) {
         return d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -275,12 +276,12 @@
             </div>
             <div class="info-bar">
                 <div class="info-row">
-                    <span>Nuværende tidspunkt</span>
-                    <span class="info-value" id="current-time">—</span>
-                </div>
-                <div class="info-row">
                     <span>Data hentet</span>
                     <span class="info-value" id="updated-text">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Siden sidst opdateret</span>
+                    <span class="info-value" id="elapsed-text">—</span>
                 </div>
                 <div class="info-row" style="margin-top:4px">
                     <span class="last-updated"><span class="dot" id="dot"></span></span>
@@ -371,7 +372,8 @@
                 ? deps.map((d, i) => renderCard(d, i)).join('')
                 : '<div class="error-msg">Ingen afgange mod Helsingør de næste 2 timer.</div>';
 
-            if (updatedEl) updatedEl.textContent = fmtTime(new Date());
+            lastFetched = new Date();
+            if (updatedEl) updatedEl.textContent = fmtTime(lastFetched);
             if (dotEl) dotEl.classList.add('live');
 
         } catch (err) {
@@ -379,16 +381,18 @@
         }
     }
 
-    function tickClock() {
-        const el = document.getElementById('current-time');
-        if (el) el.textContent = fmtTime(new Date());
+    function tickElapsed() {
+        const el = document.getElementById('elapsed-text');
+        if (!el || !lastFetched) return;
+        const secs = Math.floor((new Date() - lastFetched) / 1000);
+        if (secs < 60) el.textContent = `${secs} sek`;
+        else el.textContent = `${Math.floor(secs / 60)} min ${secs % 60} sek`;
     }
 
     renderBoard();
     fetchDepartures();
     setInterval(fetchDepartures, REFRESH_MS);
-    setInterval(tickClock, 1000);
-    tickClock();
+    setInterval(tickElapsed, 1000);
 </script>
 </body>
 </html>
