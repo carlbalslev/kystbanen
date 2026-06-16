@@ -494,25 +494,26 @@
         else el.textContent = `${Math.floor(secs / 60)} min ${secs % 60} sek`;
     }
 
+    function start(station) {
+        activeStation = station;
+        renderBoard();
+        fetchDepartures();
+    }
+
     function boot() {
         const st = getStations();
+        app.innerHTML = `<div class="loading-card" style="height:200px">Finder din lokation&hellip;</div>`;
         if (!navigator.geolocation) {
-            activeStation = st.a;
-            renderBoard();
-            fetchDepartures();
+            start(st.a);
         } else {
             navigator.geolocation.getCurrentPosition(pos => {
                 const { latitude: lat, longitude: lon } = pos.coords;
                 const distA = distKm(lat, lon, st.a.lat, st.a.lon);
                 const distB = distKm(lat, lon, st.b.lat, st.b.lon);
-                activeStation = distA <= distB ? st.a : st.b;
-                renderBoard();
-                fetchDepartures();
+                start(distA <= distB ? st.a : st.b);
             }, () => {
-                activeStation = st.a;
-                renderBoard();
-                fetchDepartures();
-            });
+                start(st.a);
+            }, { timeout: 5000 });
         }
     }
 
