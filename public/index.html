@@ -330,7 +330,7 @@
                 <div class="train-primary">
                     <div>
                         <div class="train-label">${index === 0 ? 'Næste afgang' : 'Derefter'}</div>
-                        <div class="train-minutes${minsLeft <= 5 ? ' urgent' : ''}">
+                        <div class="train-minutes${minsLeft <= 5 ? ' urgent' : ''}" onclick="fetchDepartures()" style="cursor:pointer">
                             ${minsLeft}<span class="train-minutes-unit">min</span>
                         </div>
                     </div>
