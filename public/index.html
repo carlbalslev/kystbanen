@@ -185,65 +185,6 @@
             font-size: 0.85rem;
             line-height: 1.6;
         }
-
-        /* API key setup screen */
-        .setup-screen {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .setup-card {
-            background: #18181d;
-            border: 1px solid #26262e;
-            border-radius: 14px;
-            padding: 22px;
-        }
-
-        .setup-card h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #c0c0c8;
-            margin-bottom: 10px;
-        }
-
-        .setup-card p {
-            font-size: 0.82rem;
-            color: #5a5a6a;
-            line-height: 1.6;
-            margin-bottom: 16px;
-        }
-
-        .setup-card a { color: #7a7a9a; }
-
-        .api-input {
-            width: 100%;
-            background: #0d0d0f;
-            border: 1px solid #2e2e38;
-            border-radius: 8px;
-            color: #d0d0d8;
-            padding: 10px 14px;
-            font-size: 0.9rem;
-            outline: none;
-            margin-bottom: 10px;
-        }
-
-        .api-input:focus { border-color: #4a4a60; }
-        .api-input::placeholder { color: #3a3a4a; }
-
-        .save-btn {
-            width: 100%;
-            background: #26262e;
-            border: 1px solid #3a3a46;
-            border-radius: 8px;
-            color: #c0c0c8;
-            padding: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .save-btn:active { background: #2e2e38; }
     </style>
 </head>
 <body>
@@ -253,7 +194,6 @@
     const STATION_ID = '8600626';  // Kobenhavn H
     const DIRECTION  = 'Helsingør';
     const REFRESH_MS = 30_000;
-    const KEY_STORE  = 'rp_api_key';
 
     const app = document.getElementById('app');
 
@@ -261,36 +201,6 @@
         const [fh, fm] = from.split(':').map(Number);
         const [th, tm] = to.split(':').map(Number);
         return Math.max(0, (th * 60 + tm) - (fh * 60 + fm));
-    }
-
-    function renderSetup() {
-        app.innerHTML = `
-            <div class="header">
-                <div class="header-route">Kystbanen · Kobenhavn H</div>
-                <div class="header-title">Næste tog mod Helsingør</div>
-            </div>
-            <div class="setup-screen">
-                <div class="setup-card">
-                    <h2>Første gang</h2>
-                    <p>
-                        Appen bruger Rejseplanens API. Du skal bruge en gratis adgangsnøgle
-                        fra <a href="https://labs.rejseplanen.dk" target="_blank">labs.rejseplanen.dk</a>
-                        — registrer dig og kopiér din <em>accessId</em>.
-                        Nøglen gemmes i din browser og bedes kun én gang.
-                    </p>
-                    <input class="api-input" id="keyInput" type="text"
-                           placeholder="Indsæt accessId her" autocomplete="off" />
-                    <button class="save-btn" onclick="saveKey()">Gem og åbn tavlen</button>
-                </div>
-            </div>`;
-    }
-
-    function saveKey() {
-        const k = document.getElementById('keyInput').value.trim();
-        if (!k) return;
-        localStorage.setItem(KEY_STORE, k);
-        renderBoard();
-        fetchDepartures();
     }
 
     function renderBoard() {
@@ -360,24 +270,10 @@
 
         dotEl && dotEl.classList.remove('live');
 
-        const apiKey = localStorage.getItem(KEY_STORE) || '';
-
-        const url = `https://www.rejseplanen.dk/api/departureBoard` +
-            `?accessId=${encodeURIComponent(apiKey)}` +
-            `&id=${STATION_ID}` +
-            `&maxJourneys=40` +
-            `&useTrain=1&useBus=0&useMetro=0` +
-            `&format=json` +
-            `&duration=120`;
+        const url = `/api/departures?id=${STATION_ID}&maxJourneys=40&duration=120`;
 
         try {
             const resp = await fetch(url);
-            if (resp.status === 401 || resp.status === 403) {
-                localStorage.removeItem(KEY_STORE);
-                renderSetup();
-                document.getElementById('keyInput').placeholder = 'Ugyldig nøgle — prøv igen';
-                return;
-            }
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
             const data = await resp.json();
@@ -401,14 +297,9 @@
         }
     }
 
-    // Boot
-    if (localStorage.getItem(KEY_STORE)) {
-        renderBoard();
-        fetchDepartures();
-        setInterval(fetchDepartures, REFRESH_MS);
-    } else {
-        renderSetup();
-    }
+    renderBoard();
+    fetchDepartures();
+    setInterval(fetchDepartures, REFRESH_MS);
 </script>
 </body>
 </html>
