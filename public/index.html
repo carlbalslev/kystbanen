@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tog mod Helsingør</title>
+    <title>Kystbanen</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -30,12 +30,32 @@
             letter-spacing: 0.12em;
             color: #4a6fa5;
             margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header-title {
             font-size: 1.5rem;
             font-weight: 700;
             color: #f0f4ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title .route-text { flex: 1; }
+
+        .dir-reason {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #2d4a6e;
+            background: #111827;
+            border: 1px solid #1e2d45;
+            border-radius: 6px;
+            padding: 2px 7px;
         }
 
         .trains { display: flex; flex-direction: column; gap: 12px; }
@@ -57,13 +77,6 @@
             letter-spacing: 0.1em;
             color: #4a6fa5;
             margin-bottom: 10px;
-        }
-
-        .train-top {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 12px;
         }
 
         .train-primary {
@@ -144,28 +157,22 @@
             font-variant-numeric: tabular-nums;
         }
 
-        .train-delay {
-            font-size: 0.8rem;
-            color: #ff6b6b;
+        .train-delay { font-size: 0.8rem; color: #ff6b6b; }
+
+        .train-changes {
+            font-size: 0.7rem;
+            color: #b45309;
+            background: #2a1a05;
+            border: 1px solid #5a3a10;
+            border-radius: 5px;
+            padding: 1px 6px;
         }
 
         .status-cancelled { font-size: 0.85rem; color: #ff4444; font-weight: 600; }
 
         .train-line { font-size: 0.75rem; color: #2a3a52; margin-left: auto; }
 
-        .refresh-bar {
-            margin-top: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .info-bar {
-            margin-top: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        .info-bar { margin-top: 18px; display: flex; flex-direction: column; gap: 5px; }
 
         .info-row {
             display: flex;
@@ -175,32 +182,14 @@
             color: #2d4a6e;
         }
 
-        .info-value {
-            font-variant-numeric: tabular-nums;
-            color: #4a6fa5;
-        }
+        .info-value { font-variant-numeric: tabular-nums; color: #4a6fa5; }
 
-        .last-updated {
-            font-size: 0.7rem;
-            color: #2d4a6e;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .last-updated { font-size: 0.7rem; color: #2d4a6e; display: flex; align-items: center; gap: 6px; }
 
-        .dot {
-            width: 7px; height: 7px;
-            border-radius: 50%;
-            background: #2a5298;
-            flex-shrink: 0;
-        }
-
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: #2a5298; flex-shrink: 0; }
         .dot.live { animation: pulse 2.5s infinite; background: #4a90d9; }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50%       { opacity: 0.3; }
-        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         .refresh-btn {
             background: none;
@@ -210,6 +199,17 @@
             border-radius: 6px;
             font-size: 0.7rem;
             cursor: pointer;
+        }
+
+        .swap-btn {
+            background: #1e3a6e;
+            border: 1px solid #2a5298;
+            color: #e2f0ff;
+            width: 38px; height: 38px;
+            border-radius: 9px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            flex-shrink: 0;
         }
 
         .loading-card {
@@ -249,6 +249,54 @@
             cursor: pointer;
         }
 
+        .station-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #111827;
+            border: 1px solid #1e2d45;
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+
+        .station-row .st-role {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #4a6fa5;
+        }
+
+        .station-row .st-name { font-size: 1.05rem; color: #e2f0ff; }
+
+        .result-item {
+            padding: 11px 14px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #e2f0ff;
+            border-bottom: 1px solid #1e2d45;
+        }
+        .result-item:hover { background: #1e3a6e; }
+        .result-item .sub { font-size: 0.7rem; color: #4a6fa5; }
+
+        .list-box {
+            background: #111827;
+            border: 1px solid #1e3a6e;
+            border-radius: 10px;
+            overflow: hidden;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .section-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #4a6fa5;
+            margin: 4px 2px;
+        }
+
         .error-msg {
             background: #1a0f0f;
             border: 1px solid #5a1a1a;
@@ -265,275 +313,234 @@
 
 <script>
     const REFRESH_MS = 60_000;
-    const SETTINGS_KEY = 'kystbanen_settings';
+    const SETTINGS_KEY = 'kystbanen_settings_v2';
 
-    const KNOWN_STATIONS = {
-        'Helsingør':      { id: '8600683', lat: 56.0362, lon: 12.6136, direction: 'København H' },
-        'Snekkersten':    { id: '8600680', lat: 56.0153, lon: 12.5997, direction: 'København H' },
-        'Espergærde':     { id: '8600677', lat: 56.0028, lon: 12.5800, direction: 'København H' },
-        'Humlebæk':       { id: '8600858', lat: 55.9667, lon: 12.5333, direction: 'København H' },
-        'Nivå':           { id: '8600671', lat: 55.9383, lon: 12.5117, direction: 'København H' },
-        'Kokkedal':       { id: '8600668', lat: 55.9133, lon: 12.4983, direction: 'København H' },
-        'Rungsted Kyst':  { id: '8600665', lat: 55.8883, lon: 12.5017, direction: 'København H' },
-        'Vedbæk':         { id: '8600662', lat: 55.8550, lon: 12.5533, direction: 'København H' },
-        'Skodsborg':      { id: '8600659', lat: 55.8317, lon: 12.5717, direction: 'København H' },
-        'Klampenborg':    { id: '8600748', lat: 55.7733, lon: 12.5933, direction: 'København H' },
-        'Hellerup':       { id: '8600672', lat: 55.7283, lon: 12.5767, direction: 'København H' },
-        'Østerport':      { id: '8600612', lat: 55.7100, lon: 12.5783, direction: 'København H' },
-        'København H':    { id: '8600626', lat: 55.6728, lon: 12.5655, direction: 'Helsingør' },
+    // Kystbanens stationer med korrekte Rejseplanen-ID'er (hurtigvalg).
+    const KYSTBANEN = [
+        { name: 'København H',   id: '8600626', lat: 55.673063, lon: 12.565562 },
+        { name: 'Nørreport',     id: '8600646', lat: 55.683455, lon: 12.571801 },
+        { name: 'Østerport',     id: '8600650', lat: 55.692498, lon: 12.587784 },
+        { name: 'Nordhavn',      id: '8600653', lat: 55.705613, lon: 12.590615 },
+        { name: 'Hellerup',      id: '8600655', lat: 55.731026, lon: 12.567657 },
+        { name: 'Klampenborg',   id: '8600659', lat: 55.777446, lon: 12.587730 },
+        { name: 'Skodsborg',     id: '8600661', lat: 55.823534, lon: 12.571288 },
+        { name: 'Vedbæk',        id: '8600662', lat: 55.852902, lon: 12.563018 },
+        { name: 'Rungsted Kyst', id: '8600663', lat: 55.882224, lon: 12.531475 },
+        { name: 'Kokkedal',      id: '8600664', lat: 55.903484, lon: 12.502054 },
+        { name: 'Nivå',          id: '8600665', lat: 55.933337, lon: 12.506575 },
+        { name: 'Humlebæk',      id: '8600666', lat: 55.963739, lon: 12.533408 },
+        { name: 'Espergærde',    id: '8600667', lat: 55.995803, lon: 12.549382 },
+        { name: 'Snekkersten',   id: '8600668', lat: 56.009233, lon: 12.583882 },
+        { name: 'Helsingør',     id: '8600669', lat: 56.033621, lon: 12.614167 },
+    ];
+
+    const DEFAULTS = {
+        home: KYSTBANEN.find(s => s.name === 'Humlebæk'),
+        away: KYSTBANEN.find(s => s.name === 'København H'),
+        noonCutoff: 12,
     };
 
+    const app = document.getElementById('app');
+    let settings = DEFAULTS;
+    let autoDir = null;        // { from, to, reason } fra GPS/tid
+    let userSwapped = false;   // manuel retningsbytte
+    let lastFetched = null;
+    let refreshTimer = null;
+
+    // ---- indstillinger ----
+    function validStation(s) {
+        return s && s.id && typeof s.lat === 'number' && typeof s.lon === 'number';
+    }
+
     function loadSettings() {
-        try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
+        try {
+            const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+            return {
+                home: validStation(s.home) ? s.home : DEFAULTS.home,
+                away: validStation(s.away) ? s.away : DEFAULTS.away,
+                noonCutoff: Number.isInteger(s.noonCutoff) ? s.noonCutoff : DEFAULTS.noonCutoff,
+            };
+        } catch { return DEFAULTS; }
     }
 
-    function saveSettings(s) {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-    }
+    function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
 
-    function getStations() {
-        const s = loadSettings();
-        return {
-            a: { name: s.stationA || 'København H',  ...KNOWN_STATIONS[s.stationA  || 'København H']  },
-            b: { name: s.stationB || 'Humlebæk',     ...KNOWN_STATIONS[s.stationB  || 'Humlebæk']     },
-        };
-    }
-
+    // ---- hjælpere ----
     function distKm(lat1, lon1, lat2, lon2) {
         const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
         const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    const app = document.getElementById('app');
-    let lastFetched = null;
-    let activeStation = null;
-
     function fmtTime(d) {
         return d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
-    function timeToMinutes(t) {
-        const [h, m] = t.split(':').map(Number);
-        return h * 60 + m;
+    const hhmm = t => (t ? t.slice(0, 5) : '');
+
+    function minutesUntil(dateStr, timeStr) {
+        if (!dateStr || !timeStr) return 0;
+        const [Y, Mo, D] = dateStr.split('-').map(Number);
+        const [h, m] = timeStr.split(':').map(Number);
+        const dep = new Date(Y, Mo - 1, D, h, m, 0);
+        return Math.max(0, Math.round((dep - new Date()) / 60000));
     }
 
-    function minutesUntil(depTime) {
-        const now = new Date();
-        const nowMins = now.getHours() * 60 + now.getMinutes();
-        return Math.max(0, timeToMinutes(depTime) - nowMins);
+    function minutesDiff(date1, t1, date2, t2) {
+        const toMs = (ds, ts) => {
+            const [Y, Mo, D] = ds.split('-').map(Number);
+            const [h, m] = ts.split(':').map(Number);
+            return new Date(Y, Mo - 1, D, h, m, 0).getTime();
+        };
+        return Math.max(0, Math.round((toMs(date2, t2) - toMs(date1, t1)) / 60000));
     }
 
-    function minutesDiff(from, to) {
-        return Math.max(0, timeToMinutes(to) - timeToMinutes(from));
+    // ---- retning ----
+    function currentDir() {
+        const base = autoDir || { from: settings.home, to: settings.away, reason: 'tid' };
+        return userSwapped
+            ? { from: base.to, to: base.from, reason: 'manuel' }
+            : base;
     }
 
+    function resolveAuto() {
+        return new Promise(resolve => {
+            const byTime = () => {
+                const h = new Date().getHours();
+                resolve(h < settings.noonCutoff
+                    ? { from: settings.home, to: settings.away, reason: 'tid' }
+                    : { from: settings.away, to: settings.home, reason: 'tid' });
+            };
+            if (!navigator.geolocation) return byTime();
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const { latitude: lat, longitude: lon } = pos.coords;
+                    const dh = distKm(lat, lon, settings.home.lat, settings.home.lon);
+                    const da = distKm(lat, lon, settings.away.lat, settings.away.lon);
+                    const from = dh <= da ? settings.home : settings.away;
+                    const to   = from === settings.home ? settings.away : settings.home;
+                    resolve({ from, to, reason: 'gps' });
+                },
+                () => byTime(),
+                { timeout: 5000, maximumAge: 60000 }
+            );
+        });
+    }
+
+    // ---- board ----
     function renderBoard() {
-        const st = getStations();
-        const from = activeStation || st.a;
-        const to   = from.name === st.a.name ? st.b : st.a;
+        const { from, to, reason } = currentDir();
+        const reasonText = { gps: 'GPS', tid: 'Tid', manuel: 'Manuelt' }[reason] || '';
         app.innerHTML = `
             <div class="header">
-                <div class="header-route" style="display:flex;justify-content:space-between;align-items:center">
-                    <span>Kystbanen · ${from.name}</span>
-                    <button class="refresh-btn" onclick="renderSettings()" style="font-size:0.75rem">⚙ Indstillinger</button>
+                <div class="header-route">
+                    <span>Kystbanen${reasonText ? ' · ' + reasonText : ''}</span>
+                    <button class="refresh-btn" onclick="openSettings()">⚙ Indstillinger</button>
                 </div>
-                <div class="header-title">Næste tog mod ${to.name}</div>
+                <div class="header-title">
+                    <span class="route-text">${from.name} → ${to.name}</span>
+                    <button class="swap-btn" title="Byt retning" onclick="swapDir()">⇄</button>
+                </div>
             </div>
             <div id="trains" class="trains">
                 <div class="loading-card">Henter afgange&hellip;</div>
                 <div class="loading-card"></div>
             </div>
             <div class="info-bar">
-                <div class="info-row">
-                    <span>Data hentet</span>
-                    <span class="info-value" id="updated-text">—</span>
-                </div>
-                <div class="info-row">
-                    <span>Siden sidst opdateret</span>
-                    <span class="info-value" id="elapsed-text">—</span>
-                </div>
+                <div class="info-row"><span>Data hentet</span><span class="info-value" id="updated-text">—</span></div>
+                <div class="info-row"><span>Siden sidst opdateret</span><span class="info-value" id="elapsed-text">—</span></div>
                 <div class="info-row" style="margin-top:4px">
                     <span class="last-updated"><span class="dot" id="dot"></span></span>
-                    <button class="refresh-btn" onclick="fetchDepartures()">Opdater nu</button>
+                    <button class="refresh-btn" onclick="fetchTrip()">Opdater nu</button>
                 </div>
             </div>`;
     }
 
-    function renderSettings() {
-        const s = loadSettings();
-        app.innerHTML = `
-            <div class="header">
-                <div class="header-route">Kystbanen</div>
-                <div class="header-title">Indstillinger</div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:16px">
-                ${stationPicker('stationA', 'Station A', s.stationA || 'København H')}
-                ${stationPicker('stationB', 'Station B', s.stationB || 'Humlebæk')}
-                <button class="save-btn" onclick="saveSettingsAndReturn()">Gem</button>
-                <button class="refresh-btn" style="width:100%;padding:10px" onclick="boot()">Annuller</button>
-            </div>`;
+    function swapDir() {
+        userSwapped = !userSwapped;
+        renderBoard();
+        fetchTrip();
     }
 
-    function stationPicker(id, label, current) {
-        return `
-            <div>
-                <div class="platform-label" style="margin-bottom:6px">${label}</div>
-                <div style="position:relative">
-                    <div id="${id}-display" style="display:flex;align-items:center;gap:10px">
-                        <span id="${id}-name" style="font-size:1rem;color:#e2f0ff;flex:1">${current}</span>
-                        <button class="refresh-btn" onclick="activatePicker('${id}')" style="flex-shrink:0">Skift</button>
-                    </div>
-                    <div id="${id}-search" style="display:none;position:relative">
-                        <input class="api-input" id="${id}-input" type="text"
-                            autocomplete="off"
-                            oninput="filterStations('${id}')"
-                            onblur="setTimeout(()=>hideList('${id}'),150)"
-                            placeholder="Søg station…" />
-                        <div id="${id}-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:#111827;border:1px solid #1e3a6e;border-radius:8px;margin-top:4px;z-index:10;max-height:200px;overflow-y:auto"></div>
-                    </div>
-                    <input type="hidden" id="${id}-value" value="${current}" />
-                </div>
-            </div>`;
-    }
+    function renderCard(d, index) {
+        const cancelled  = d.cancelled;
+        const schedTime  = hhmm(d.time);
+        const rtTime     = d.rtTime ? hhmm(d.rtTime) : null;
+        const delayed    = !cancelled && rtTime && rtTime !== schedTime;
 
-    function activatePicker(id) {
-        document.getElementById(`${id}-display`).style.display = 'none';
-        document.getElementById(`${id}-search`).style.display = 'block';
-        const input = document.getElementById(`${id}-input`);
-        input.value = '';
-        input.focus();
-        filterStations(id);
-    }
+        const effDate = (d.rtTime && d.rtDate) ? d.rtDate : d.date;
+        const effTime = d.rtTime || d.time;
+        const minsLeft = minutesUntil(effDate, effTime);
 
-    function filterStations(id) {
-        const input = document.getElementById(`${id}-input`);
-        const list  = document.getElementById(`${id}-list`);
-        const q     = input.value.toLowerCase();
-        const matches = Object.keys(KNOWN_STATIONS).filter(n => !q || n.toLowerCase().includes(q));
-        if (!matches.length) { list.style.display = 'none'; return; }
-        list.innerHTML = matches.map(n => `
-            <div onclick="selectStation('${id}','${n}')"
-                 style="padding:10px 14px;cursor:pointer;font-size:0.9rem;color:#e2f0ff;border-bottom:1px solid #1e2d45"
-                 onmouseover="this.style.background='#1e3a6e'" onmouseout="this.style.background=''">
-                ${n}
-            </div>`).join('');
-        list.style.display = 'block';
-    }
+        const track = d.rtTrack || d.track;
+        const trackChanged = d.rtTrack && d.track && d.rtTrack !== d.track;
 
-    function selectStation(id, name) {
-        document.getElementById(`${id}-value`).value = name;
-        document.getElementById(`${id}-name`).textContent = name;
-        document.getElementById(`${id}-search`).style.display = 'none';
-        document.getElementById(`${id}-display`).style.display = 'flex';
-        hideList(id);
-    }
-
-    function hideList(id) {
-        const list = document.getElementById(`${id}-list`);
-        if (list) list.style.display = 'none';
-    }
-
-    function saveSettingsAndReturn() {
-        const a = document.getElementById('stationA-value').value;
-        const b = document.getElementById('stationB-value').value;
-        if (!KNOWN_STATIONS[a] || !KNOWN_STATIONS[b]) return;
-        saveSettings({ stationA: a, stationB: b });
-        activeStation = null;
-        boot();
-    }
-
-    function renderCard(dep, index) {
-        const scheduled    = dep.time;
-        const rt           = dep.rtTime;
-        const cancelled    = String(dep.cancelled) === 'true';
-        const delayed      = !cancelled && rt && rt !== scheduled;
-        const displayTime  = rt || scheduled;
-        const minsLeft     = minutesUntil(displayTime);
-
-        const track        = dep.rtTrack || dep.track || null;
-        const trackChanged = dep.rtTrack && dep.track && dep.rtTrack !== dep.track;
-
-        const platformHtml = track
-            ? `<div class="train-platform">
-                 <div class="platform-label">Spor</div>
-                 <div class="platform-number${trackChanged ? ' rt-changed' : ''}">${track}</div>
-               </div>`
-            : '';
-
-        let secondaryHtml = '';
+        let secondaryHtml;
         if (cancelled) {
             secondaryHtml = '<span class="status-cancelled">Aflyst</span>';
         } else if (delayed) {
-            const diff = minutesDiff(scheduled, rt);
+            const diff = minutesDiff(d.date, d.time, d.rtDate || d.date, d.rtTime);
             secondaryHtml = `
-                <span class="train-deptime delayed">${rt}</span>
-                <span class="train-scheduled">${scheduled}</span>
+                <span class="train-deptime delayed">${rtTime}</span>
+                <span class="train-scheduled">${schedTime}</span>
                 <span class="train-delay">+${diff} min</span>`;
         } else {
-            secondaryHtml = `<span class="train-deptime">${scheduled}</span>`;
+            secondaryHtml = `<span class="train-deptime">${schedTime}</span>`;
         }
 
-        const platformHtmlInner = track
-            ? `<div class="platform-number${trackChanged ? ' rt-changed' : ''}">${track}</div>`
-            : '';
+        const changesHtml = d.changes > 0
+            ? `<span class="train-changes">${d.changes} skift</span>` : '';
 
         return `
             <div class="train-card${index === 0 ? ' first' : ''}${cancelled ? ' cancelled' : ''}">
                 <div class="train-primary">
                     <div>
                         <div class="train-label">${index === 0 ? 'Næste afgang' : 'Derefter'}</div>
-                        <div class="train-minutes${minsLeft <= 5 ? ' urgent' : ''}" onclick="fetchDepartures()" style="cursor:pointer">
+                        <div class="train-minutes${minsLeft <= 5 ? ' urgent' : ''}" onclick="fetchTrip()" style="cursor:pointer">
                             ${minsLeft}<span class="train-minutes-unit">min</span>
                         </div>
                     </div>
                     ${track ? `<div class="train-platform">
                         <div class="platform-label">Spor</div>
-                        ${platformHtmlInner}
+                        <div class="platform-number${trackChanged ? ' rt-changed' : ''}">${track}</div>
                     </div>` : ''}
                 </div>
                 <div class="train-secondary">
                     ${secondaryHtml}
-                    <span class="train-line">${dep.name || ''}</span>
+                    ${changesHtml}
+                    <span class="train-line">${d.name || ''}</span>
                 </div>
             </div>`;
     }
 
-    async function fetchDepartures() {
+    async function fetchTrip() {
         const trainsEl  = document.getElementById('trains');
         const updatedEl = document.getElementById('updated-text');
         const dotEl     = document.getElementById('dot');
         if (!trainsEl) return;
+        if (dotEl) dotEl.classList.remove('live');
 
-        dotEl && dotEl.classList.remove('live');
-
-        const st   = getStations();
-        const from = activeStation || st.a;
-        const to   = from.name === st.a.name ? st.b : st.a;
-        const url  = `/api/departures?id=${from.id}`;
+        const { from, to } = currentDir();
 
         try {
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-
+            const resp = await fetch(`/api/trip?from=${from.id}&to=${to.id}`);
+            if (!resp.ok) {
+                let msg = `HTTP ${resp.status}`;
+                try { const e = await resp.json(); if (e.error) msg = e.error; } catch {}
+                throw new Error(msg);
+            }
             const data = await resp.json();
-            const raw = data?.DepartureBoard?.Departure;
-            if (!raw) throw new Error('Uventet svar fra API');
-
-            const deps = (Array.isArray(raw) ? raw : [raw])
-                .filter(d => d.direction && d.direction.includes(activeStation.direction))
-                .slice(0, 2);
+            const deps = (data.departures || []).slice(0, 2);
 
             trainsEl.innerHTML = deps.length
                 ? deps.map((d, i) => renderCard(d, i)).join('')
-                : '<div class="error-msg">Ingen afgange mod Helsingør de næste 2 timer.</div>';
+                : `<div class="error-msg">Ingen tog fra ${from.name} mod ${to.name} de næste timer.</div>`;
 
             lastFetched = new Date();
             if (updatedEl) updatedEl.textContent = fmtTime(lastFetched);
             if (dotEl) dotEl.classList.add('live');
-
         } catch (err) {
-            if (trainsEl) trainsEl.innerHTML = `<div class="error-msg">${err.message}</div>`;
+            trainsEl.innerHTML = `<div class="error-msg">${err.message}</div>`;
         }
     }
 
@@ -541,57 +548,139 @@
         const el = document.getElementById('elapsed-text');
         if (!el || !lastFetched) return;
         const secs = Math.floor((new Date() - lastFetched) / 1000);
-        if (secs < 60) el.textContent = `${secs} sek`;
-        else el.textContent = `${Math.floor(secs / 60)} min ${secs % 60} sek`;
+        el.textContent = secs < 60 ? `${secs} sek` : `${Math.floor(secs / 60)} min ${secs % 60} sek`;
     }
 
-    function start(station) {
-        activeStation = station;
-        renderBoard();
-        fetchDepartures();
+    // ---- indstillinger / stationsvalg ----
+    let draft = null;
+
+    function openSettings() {
+        draft = { home: { ...settings.home }, away: { ...settings.away }, noonCutoff: settings.noonCutoff };
+        renderSettings();
     }
 
-    function boot() {
-        const st = getStations();
-        app.innerHTML = `<div class="loading-card" style="height:200px">Finder din lokation&hellip;</div>`;
-        if (!navigator.geolocation) {
-            start(st.a);
-        } else {
-            navigator.geolocation.getCurrentPosition(pos => {
-                const { latitude: lat, longitude: lon } = pos.coords;
-                const distA = distKm(lat, lon, st.a.lat, st.a.lon);
-                const distB = distKm(lat, lon, st.b.lat, st.b.lon);
-                start(distA <= distB ? st.a : st.b);
-            }, () => {
-                start(st.a);
-            }, { timeout: 5000 });
+    function renderSettings() {
+        app.innerHTML = `
+            <div class="header">
+                <div class="header-route"><span>Kystbanen</span></div>
+                <div class="header-title">Indstillinger</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+                <div class="station-row">
+                    <div style="flex:1">
+                        <div class="st-role">Hjem-station</div>
+                        <div class="st-name">${draft.home.name}</div>
+                    </div>
+                    <button class="refresh-btn" onclick="pickStation('home')">Skift</button>
+                </div>
+                <div class="station-row">
+                    <div style="flex:1">
+                        <div class="st-role">Anden station</div>
+                        <div class="st-name">${draft.away.name}</div>
+                    </div>
+                    <button class="refresh-btn" onclick="pickStation('away')">Skift</button>
+                </div>
+                <div class="info-row" style="margin-top:2px">
+                    Før kl. ${draft.noonCutoff} antages du på vej fra hjem; efter antages retning hjem.
+                    GPS bruges hvis muligt.
+                </div>
+                <button class="save-btn" onclick="saveAndReturn()">Gem</button>
+                <button class="refresh-btn" style="width:100%;padding:10px" onclick="boot()">Annuller</button>
+            </div>`;
+    }
+
+    function pickStation(slot) {
+        const role = slot === 'home' ? 'Hjem-station' : 'Anden station';
+        app.innerHTML = `
+            <div class="header">
+                <div class="header-route"><span>${role}</span></div>
+                <div class="header-title">Vælg station</div>
+            </div>
+            <input class="api-input" id="st-search" type="text" autocomplete="off"
+                   placeholder="Søg by eller station…" oninput="onSearchInput()" />
+            <div id="st-results" style="margin-top:12px"></div>
+            <button class="refresh-btn" style="width:100%;padding:10px;margin-top:14px" onclick="renderSettings()">Tilbage</button>`;
+        window.__slot = slot;
+        renderResults(KYSTBANEN, 'Kystbanen');
+        document.getElementById('st-search').focus();
+    }
+
+    function renderResults(list, label) {
+        const box = document.getElementById('st-results');
+        if (!box) return;
+        if (!list.length) { box.innerHTML = `<div class="info-row">Ingen resultater</div>`; return; }
+        box.innerHTML = `
+            ${label ? `<div class="section-label">${label}</div>` : ''}
+            <div class="list-box">
+                ${list.map(s => `
+                    <div class="result-item" onclick='selectStation(${JSON.stringify(s).replace(/'/g, "&#39;")})'>
+                        ${s.name}
+                    </div>`).join('')}
+            </div>`;
+    }
+
+    let searchTimer = null;
+    function onSearchInput() {
+        const q = document.getElementById('st-search').value.trim();
+        clearTimeout(searchTimer);
+        if (!q) { renderResults(KYSTBANEN, 'Kystbanen'); return; }
+        const local = KYSTBANEN.filter(s => s.name.toLowerCase().includes(q.toLowerCase()));
+        searchTimer = setTimeout(async () => {
+            try {
+                const resp = await fetch(`/api/stations?q=${encodeURIComponent(q)}`);
+                const data = await resp.json();
+                const remote = (data.stations || [])
+                    .filter(s => typeof s.lat === 'number' && typeof s.lon === 'number')
+                    .slice(0, 12);
+                renderResults(remote.length ? remote : local, remote.length ? 'Søgeresultater' : 'Kystbanen');
+            } catch {
+                renderResults(local, 'Kystbanen');
+            }
+        }, 250);
+    }
+
+    function selectStation(s) {
+        draft[window.__slot] = { name: s.name, id: s.id, lat: s.lat, lon: s.lon };
+        renderSettings();
+    }
+
+    function saveAndReturn() {
+        if (draft.home.id === draft.away.id) {
+            alert('Vælg to forskellige stationer');
+            return;
         }
+        settings = draft;
+        saveSettings(settings);
+        boot();
     }
 
-    let refreshTimer = null;
-
+    // ---- polling ----
     function startPolling() {
         if (refreshTimer) return;
-        refreshTimer = setInterval(fetchDepartures, REFRESH_MS);
+        refreshTimer = setInterval(fetchTrip, REFRESH_MS);
     }
-
     function stopPolling() {
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
     }
-
-    // Pause når fanen er skjult, så en glemt-åben fane ikke æder API-rationen.
-    // Hent friske data straks når brugeren vender tilbage.
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            stopPolling();
-        } else {
-            fetchDepartures();
-            startPolling();
-        }
+        if (document.hidden) { stopPolling(); }
+        else { fetchTrip(); startPolling(); }
     });
 
+    // ---- start ----
+    function boot() {
+        settings = loadSettings();
+        userSwapped = false;
+        app.innerHTML = `<div class="loading-card" style="height:200px">Finder din retning&hellip;</div>`;
+        resolveAuto().then(dir => {
+            autoDir = dir;
+            renderBoard();
+            fetchTrip();
+            startPolling();
+        });
+    }
+
     boot();
-    startPolling();
     setInterval(tickElapsed, 1000);
 </script>
 </body>

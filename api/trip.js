@@ -1,6 +1,6 @@
 // Næste afgange fra A til B via Rejseplanens rejseplan. Ved at give fra-ID og
 // til-ID slipper vi for at gætte retning ud fra togets endestation — vi får
-// præcis de tog der faktisk kører fra A til B.
+// præcis de tog der faktisk kører fra A til B (også dem der fortsætter videre).
 const ID_RE = /^\d{5,12}$/;
 
 export default async function handler(req, res) {
@@ -39,7 +39,31 @@ export default async function handler(req, res) {
         return res.status(200).json(data);
     }
 
-    // Normalisering tilføjes når jeg har bekræftet trip-strukturen live.
+    const asArray = x => (Array.isArray(x) ? x : x ? [x] : []);
+
+    const departures = asArray(data.Trip).map(t => {
+        const legs = asArray(t.LegList && t.LegList.Leg);
+        const jnys = legs.filter(l => l.type === 'JNY');
+        const first = jnys[0];
+        if (!first) return null;                 // ren gå-rute uden tog
+        const o = first.Origin || {};
+        const dest = (legs[legs.length - 1] || {}).Destination || {};
+        return {
+            name: first.name || '',
+            direction: first.direction || '',
+            time: o.time || null,
+            rtTime: o.rtTime || null,
+            date: o.date || null,
+            rtDate: o.rtDate || null,
+            track: o.track || null,
+            rtTrack: o.rtTrack || null,
+            cancelled: Boolean(first.cancelled || o.cancelled),
+            changes: jnys.length - 1,
+            arrTime: dest.rtTime || dest.time || null,
+        };
+    }).filter(Boolean);
+
+    // Alle brugere af samme rute deler ét upstream-kald pr. 30s-vindue.
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=300');
-    return res.status(200).json(data);
+    return res.status(200).json({ departures });
 }
