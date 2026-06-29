@@ -46,8 +46,17 @@ export default async function handler(req, res) {
         `&duration=${duration}`;
 
     const upstream = await fetch(url);
-    const data = await upstream.json();
+    const text = await upstream.text();
+
+    let data;
+    try { data = JSON.parse(text); } catch {
+        return res.status(502).json({ error: 'Rejseplanen svarede ikke med JSON', raw: text.slice(0, 500) });
+    }
+
+    if (!upstream.ok || data.errorCode || data.error) {
+        return res.status(502).json({ error: 'Rejseplanen fejl', details: data });
+    }
 
     res.setHeader('Cache-Control', 's-maxage=20');
-    return res.status(upstream.status).json(data);
+    return res.status(200).json(data);
 }
