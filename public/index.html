@@ -264,7 +264,7 @@
 <div class="container" id="app"></div>
 
 <script>
-    const REFRESH_MS = 30_000;
+    const REFRESH_MS = 60_000;
     const SETTINGS_KEY = 'kystbanen_settings';
 
     const KNOWN_STATIONS = {
@@ -510,7 +510,7 @@
         const st   = getStations();
         const from = activeStation || st.a;
         const to   = from.name === st.a.name ? st.b : st.a;
-        const url  = `/api/departures?id=${from.id}&maxJourneys=40&duration=120`;
+        const url  = `/api/departures?id=${from.id}`;
 
         try {
             const resp = await fetch(url);
@@ -568,8 +568,30 @@
         }
     }
 
+    let refreshTimer = null;
+
+    function startPolling() {
+        if (refreshTimer) return;
+        refreshTimer = setInterval(fetchDepartures, REFRESH_MS);
+    }
+
+    function stopPolling() {
+        if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+    }
+
+    // Pause når fanen er skjult, så en glemt-åben fane ikke æder API-rationen.
+    // Hent friske data straks når brugeren vender tilbage.
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopPolling();
+        } else {
+            fetchDepartures();
+            startPolling();
+        }
+    });
+
     boot();
-    setInterval(fetchDepartures, REFRESH_MS);
+    startPolling();
     setInterval(tickElapsed, 1000);
 </script>
 </body>
