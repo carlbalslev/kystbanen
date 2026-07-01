@@ -14,11 +14,28 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'API key not configured' });
     }
 
+    // Søg fra ~15 min bagud, så tog med planlagt afgang i den nære fortid også
+    // kommer med — de kan være forsinkede og afgår i virkeligheden først nu.
+    // Klienten filtrerer bagefter de reelt afgåede væk (på realtid).
+    // Tiden bucketes til hele minutter, så cache-nøglen er stabil.
+    const BACK_MIN = 15;
+    const searchAt = new Date(Date.now() - BACK_MIN * 60000);
+    const p = Object.fromEntries(
+        new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Europe/Copenhagen',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hour12: false,
+        }).formatToParts(searchAt).map(x => [x.type, x.value])
+    );
+    const date = `${p.year}-${p.month}-${p.day}`;
+    const time = `${p.hour}:${p.minute}`;
+
     const url = `https://www.rejseplanen.dk/api/trip` +
         `?accessId=${encodeURIComponent(apiKey)}` +
         `&originExtId=${encodeURIComponent(from)}` +
         `&destExtId=${encodeURIComponent(to)}` +
-        `&numF=4` +            // de næste 4 afgange frem i tid
+        `&date=${date}&time=${time}&searchForArrival=0` +
+        `&numF=6` +            // nok afgange til at dække vinduet frem i tid
         `&format=json`;
 
     let upstream, text;

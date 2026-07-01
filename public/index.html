@@ -390,12 +390,23 @@
 
     const hhmm = t => (t ? t.slice(0, 5) : '');
 
-    function minutesUntil(dateStr, timeStr) {
+    function signedMinutesUntil(dateStr, timeStr) {
         if (!dateStr || !timeStr) return 0;
         const [Y, Mo, D] = dateStr.split('-').map(Number);
         const [h, m] = timeStr.split(':').map(Number);
         const dep = new Date(Y, Mo - 1, D, h, m, 0);
-        return Math.max(0, Math.round((dep - new Date()) / 60000));
+        return Math.round((dep - new Date()) / 60000);
+    }
+
+    function minutesUntil(dateStr, timeStr) {
+        return Math.max(0, signedMinutesUntil(dateStr, timeStr));
+    }
+
+    // Reel (realtids) afgang: brug rt-tid hvis den findes, ellers planlagt.
+    function effectiveDeparted(d) {
+        const date = (d.rtTime && d.rtDate) ? d.rtDate : d.date;
+        const time = d.rtTime || d.time;
+        return signedMinutesUntil(date, time) < 0;   // allerede afgået i virkeligheden
     }
 
     function minutesDiff(date1, t1, date2, t2) {
@@ -542,7 +553,10 @@
                 throw new Error(msg);
             }
             const data = await resp.json();
-            const deps = (data.departures || []).slice(0, 2);
+            // Vinduet fra serveren rækker lidt bagud; behold kun tog der
+            // (på realtid) endnu ikke er afgået — inkl. forsinkede der skulle
+            // være kørt, men reelt afgår om lidt.
+            const deps = (data.departures || []).filter(d => !effectiveDeparted(d)).slice(0, 2);
 
             trainsEl.innerHTML = deps.length
                 ? deps.map((d, i) => renderCard(d, i)).join('')
